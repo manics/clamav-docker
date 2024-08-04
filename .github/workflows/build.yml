@@ -62,7 +62,9 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           push: ${{ github.ref == 'refs/heads/main' }}
-          build-args: BASEIMAGE=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-base:latest
+          build-args: |
+            BASE_IMAGE=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-base:latest
+            CLAMAV_IMAGE=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
           context: "{{defaultContext}}:update"
           tags: ${{ steps.meta-updates.outputs.tags }}
           labels: ${{ steps.meta-updates.outputs.labels }}
