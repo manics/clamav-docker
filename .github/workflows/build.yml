@@ -48,9 +48,10 @@ jobs:
         uses: docker/metadata-action@v5
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-          tags: |
-            # set latest tag for default branch
-            type=raw,value=latest,enable={{is_default_branch}}
+          flavor: latest=true
+          # tags: |
+          #   # set latest tag for default branch
+          #   type=raw,value=latest,enable={{is_default_branch}}
 
       # Does image exist? If it doesn't we can't build on top of it
       # https://github.com/orgs/community/discussions/26279#discussioncomment-3251172
