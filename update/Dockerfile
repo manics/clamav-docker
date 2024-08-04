@@ -5,8 +5,7 @@ ARG BASE_IMAGE=ghcr.io/manics/clamav-base:latest
 # Pull the latest freshclam image, update data
 FROM $CLAMAV_IMAGE AS update
 
-# RUN freshclam --verbose
-RUN freshclam --help
+RUN freshclam --verbose
 
 ######################################################################
 # Squash data
