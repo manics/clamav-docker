@@ -49,6 +49,25 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
 
+      # Does image exist? If it doesn't we can't build on top of it
+      # https://github.com/orgs/community/discussions/26279#discussioncomment-3251172
+      - name: Check if bootstrapped with first image
+        id: bootstrapped
+        run: |
+          GHCR_TOKEN=$(echo -n ${{ secrets.GITHUB_TOKEN }} | base64)
+          STATUS=$(curl -s -o /dev/null -I -w "%{http_code}" -H "Authorization: Bearer ${GHCR_TOKEN}" "https://${REGISTRY}/v2/${IMAGE_NAME}/manifests/latest")
+
+          if [ "$STATUS" = "200" ]; then
+            echo "${IMAGE_NAME}:latest" found
+            echo "clamav-image=${REGISTRY}/${IMAGE_NAME}:latest" >> $GITHUB_OUTPUT
+          elif [ "$STATUS" = "404" ]; then
+            echo "${IMAGE_NAME}:latest" not found
+            echo "clamav-image=${REGISTRY}/${IMAGE_NAME}-base:latest" >> $GITHUB_OUTPUT
+          else
+            echo "ERROR: Unexpected HTTP status: $STATUS"
+            exit 1
+          fi
+
       - name: Build and push base image on tags only
         uses: docker/build-push-action@v6
         with:
@@ -64,7 +83,7 @@ jobs:
           push: ${{ github.ref == 'refs/heads/main' }}
           build-args: |
             BASE_IMAGE=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-base:latest
-            CLAMAV_IMAGE=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+            CLAMAV_IMAGE=${{ steps.bootstrapped.outputs.clamav-image }}
           context: "{{defaultContext}}:update"
           tags: ${{ steps.meta-updates.outputs.tags }}
           labels: ${{ steps.meta-updates.outputs.labels }}
