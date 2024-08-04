@@ -49,9 +49,6 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           flavor: latest=true
-          # tags: |
-          #   # set latest tag for default branch
-          #   type=raw,value=latest,enable={{is_default_branch}}
 
       # Does image exist? If it doesn't we can't build on top of it
       # https://github.com/orgs/community/discussions/26279#discussioncomment-3251172
@@ -59,7 +56,7 @@ jobs:
         id: bootstrapped
         run: |
           GHCR_TOKEN=$(echo -n ${{ secrets.GITHUB_TOKEN }} | base64)
-          STATUS=$(curl -s -o /dev/null -I -w "%{http_code}" -H "Authorization: Bearer ${GHCR_TOKEN}" "https://${REGISTRY}/v2/${IMAGE_NAME}/manifests/latest")
+          STATUS=$(curl -s -o /dev/null -I -w "%{http_code}" -H "Authorization: Bearer ${GHCR_TOKEN}" -H "Accept: application/vnd.oci.image.manifest.v1+json" -H "Accept: application/vnd.oci.image.index.v1+json" "https://${REGISTRY}/v2/${IMAGE_NAME}/manifests/latest")
 
           if [ "$STATUS" = "200" ]; then
             echo "${IMAGE_NAME}:latest" found
